@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoteHex++ Hub · Temas y plugins</title>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root { --bg:#0b0d10; --panel:#12151a; --card:#171b21; --line:#242a33; --text:#e8ecf1; --muted:#8b95a3; --accent:#a3e635; --bad:#f87171; --good:#4ade80; --warn:#fbbf24; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: "Segoe UI", system-ui, sans-serif; color: var(--text); min-height:100vh;
+         background: radial-gradient(1100px 500px at 15% -12%, #1c2a1f 0%, var(--bg) 58%) fixed; }
+  a { color: inherit; }
+  nav { display:flex; align-items:center; gap:14px; padding: 14px 24px; border-bottom:1px solid var(--line); position: sticky; top:0; background: rgba(11,13,16,.85); backdrop-filter: blur(10px); z-index: 10; }
+  .brand { font-weight:700; letter-spacing:-.3px; margin-right: auto; }
+  .brand span { color: var(--accent); }
+  .tabs { display:flex; gap:6px; }
+  .tab { background:none; border:0; color: var(--muted); padding: 8px 14px; border-radius: 10px; cursor:pointer; font-size:15px; transition: all .2s; }
+  .tab.on { background: var(--card); color: var(--text); }
+  .btn { background: var(--card); color: var(--text); border:1px solid var(--line); padding: 9px 16px; border-radius: 10px; cursor:pointer; font-size: 14px; transition: all .2s; text-decoration:none; display:inline-block; }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); color:#0b0d10; border-color: var(--accent); font-weight:600; }
+  .btn.primary:hover { color:#0b0d10; filter: brightness(1.07); }
+  .btn:disabled { opacity:.5; cursor: not-allowed; }
+  .who { color: var(--muted); font-size: 14px; }
+  .hero { text-align:center; padding: 40px 24px 20px; }
+  .hero h1 { margin:0; font-size: clamp(26px, 4vw, 40px); letter-spacing:-.5px; }
+  .hero h1 span { color: var(--accent); }
+  .hero p { color: var(--muted); margin: 8px 0 0; }
+  .bar { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; padding: 18px 24px; }
+  .bar input { flex: 1 1 280px; max-width: 420px; background: var(--card); border:1px solid var(--line); color: var(--text); padding: 11px 16px; border-radius: 12px; font-size:15px; outline:none; }
+  .bar input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(163,230,53,.12); }
+  .chip { background: var(--card); border:1px solid var(--line); color: var(--muted); padding: 9px 15px; border-radius: 999px; cursor:pointer; font-size: 14px; }
+  .chip.on { background: var(--accent); color:#0b0d10; border-color: var(--accent); font-weight:600; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; padding: 8px 24px 60px; }
+  .card { background: var(--card); border:1px solid var(--line); border-radius: 16px; overflow:hidden; display:flex; flex-direction:column; transition: transform .25s, box-shadow .25s; animation: rise .45s both; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(0,0,0,.45); }
+  @keyframes rise { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform:none; } }
+  .preview { height: 170px; padding: 12px; background: var(--w); display:flex; flex-direction:column; gap:6px; }
+  .tb { height: 20px; border-radius: 6px; background: var(--tb); display:flex; align-items:center; gap:5px; padding: 0 8px; }
+  .tb i { width:7px; height:7px; border-radius:50%; background: var(--ac); }
+  .ed { flex:1; display:flex; border-radius: 8px; background: var(--ed); overflow:hidden; font: 11px/1.55 Consolas, "Cascadia Mono", monospace; }
+  .gu { width: 28px; background: var(--gu); color: var(--muted2); text-align:right; padding: 6px 6px 0 0; }
+  .tx { padding: 6px 10px; white-space: pre; overflow:hidden; color: var(--tx); }
+  .k { color: var(--kw); } .s { color: var(--st); } .c { color: var(--cm); } .f { color: var(--fn); } .n { color: var(--nm); }
+  .pl-preview { height:170px; background: linear-gradient(135deg, #1c2a1f, #0f1412); display:flex; align-items:center; justify-content:center; font-size: 56px; }
+  .info { padding: 16px 18px 18px; display:flex; flex-direction:column; gap:8px; flex:1; }
+  .info h3 { margin:0; font-size:17px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .tag { font-size: 11px; padding: 3px 8px; border-radius: 999px; background: #1e242c; color: var(--muted); font-weight:500; white-space:nowrap; }
+  .tag.ok { background: #14321f; color: var(--good); }
+  .info p { margin:0; color: var(--muted); font-size: 14px; line-height: 1.45; min-height: 40px; }
+  .sw { display:flex; gap:5px; } .sw b { width:18px; height:18px; border-radius:6px; border:1px solid #ffffff18; }
+  .actions { display:flex; gap:8px; margin-top:auto; padding-top:8px; }
+  .actions .btn { flex:1; text-align:center; font-size: 13px; padding: 8px 10px; }
+  .empty { text-align:center; color: var(--muted); grid-column: 1/-1; padding: 40px; }
+  /* Modal de subida */
+  .modal-bg { position: fixed; inset:0; background: rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; padding: 20px; z-index: 50; }
+  .modal-bg.open { display:flex; }
+  .modal { background: var(--panel); border:1px solid var(--line); border-radius: 18px; width: min(560px, 100%); max-height: 90vh; overflow:auto; padding: 24px; animation: rise .3s both; }
+  .modal h2 { margin: 0 0 6px; font-size: 20px; }
+  .modal .sub { color: var(--muted); font-size: 14px; margin: 0 0 18px; }
+  .field { display:flex; flex-direction:column; gap:6px; margin-bottom: 14px; }
+  .field label { font-size: 13px; color: var(--muted); }
+  .field input[type=file], .field select { background: var(--card); color: var(--text); border:1px solid var(--line); padding: 10px; border-radius: 10px; }
+  .drop { border:2px dashed var(--line); border-radius: 14px; padding: 22px; text-align:center; color: var(--muted); transition: all .2s; }
+  .drop.over { border-color: var(--accent); color: var(--accent); }
+  .checks { background: var(--card); border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.7; margin: 10px 0; min-height: 48px; }
+  .checks .ok { color: var(--good); } .checks .bad { color: var(--bad); } .checks .warn { color: var(--warn); }
+  .row { display:flex; gap:10px; justify-content:flex-end; margin-top: 16px; flex-wrap: wrap; }
+  .notice { font-size: 12px; color: var(--muted); line-height: 1.5; margin-top: 10px; }
+  footer { text-align:center; color: var(--muted); font-size: 13px; padding: 0 24px 40px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<nav>
+  <div class="brand">NoteHex++ <span>Hub</span></div>
+  <div class="tabs">
+    <button class="tab on" data-tab="temas">Temas</button>
+    <button class="tab" data-tab="plugins">Plugins</button>
+  </div>
+  <span class="who" id="who"></span>
+  <button class="btn" id="btn-login">Iniciar sesión</button>
+  <button class="btn primary" id="btn-upload" disabled>Subir</button>
+</nav>
+
+<section class="hero">
+  <h1>Temas y plugins para <span>NoteHex++</span></h1>
+  <p>Descarga, instala y comparte. Subir requiere iniciar sesión con GitHub.</p>
+</section>
+<div class="bar">
+  <input id="q" type="search" placeholder="Buscar…" aria-label="Buscar">
+  <button class="chip on" data-f="todos">Todos</button>
+  <button class="chip" data-f="oscuro">Oscuros</button>
+  <button class="chip" data-f="claro">Claros</button>
+</div>
+<div id="status" style="text-align:center;color:var(--muted);font-size:13px;margin-bottom:10px"></div>
+<main class="grid" id="grid"></main>
+<footer>Fuente: <span id="src"></span> · Las subidas se revisan antes de publicarse.</footer>
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-title">
+    <h2 id="m-title">Subir a NoteHex++ Hub</h2>
+    <p class="sub">Tu envío se revisa automáticamente y luego por una persona. Nada se publica sin aprobación.</p>
+    <div class="field"><label for="m-kind">¿Qué subes?</label>
+      <select id="m-kind"><option value="theme">Tema (archivo .json)</option><option value="plugin">Plugin (archivo .zip)</option></select>
+    </div>
+    <div class="drop" id="drop">Arrastra el archivo aquí o <label style="color:var(--accent);cursor:pointer">elígelo<input type="file" id="m-file" hidden></label></div>
+    <div class="checks" id="m-checks">Elige un archivo para comprobarlo antes de enviarlo.</div>
+    <div class="field" id="ts-box"></div>
+    <div class="notice">Revisamos el archivo con reglas de formato, una lista de módulos prohibidos y VirusTotal. Esta comprobación en tu navegador es solo orientativa: la revisión definitiva la hace el servidor.</div>
+    <div class="row">
+      <button class="btn" id="m-cancel">Cancelar</button>
+      <button class="btn primary" id="m-send" disabled>Enviar para revisión</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================= CONFIGURACIÓN (cámbiala al desplegar) =================
+const CONFIG = {
+  API_URL: "https://TU-API.onrender.com",          // servicio Node de api/server.js
+  PAGES_URL: "https://TU-USUARIO.github.io/notehex-hub/",
+  TURNSTILE_SITE_KEY: "",                           // clave pública de Cloudflare Turnstile
+  repoRaw: "https://github.com/eze-as/notehex-db/raw/refs/heads/main/",
+  dataJson: "https://github.com/eze-as/notehex-db/raw/refs/heads/main/data.json",
+  pluginsIndex: "https://github.com/eze-as/notehex-db/raw/refs/heads/main/plugins/index.json",
+};
+const FALLBACK_THEMES = [{"id": "crimson_eclipse", "name": "Crimson Eclipse", "description": "Negro volcánico con detalles rojo carmesí y plata.", "colors": {"bg_window": "#110D10", "bg_toolbar": "#1A1318", "bg_editor": "#0D090C", "bg_gutter": "#150F13", "bg_statusbar": "#1A1318", "bg_tab_active": "#E11D48", "bg_tab_inactive": "#291D25", "bg_hover": "#382732", "bg_current_line": "#1D1319", "fg_text": "#F4E8EE", "fg_gutter": "#7A5C6C", "fg_hex": "#FDA4AF", "fg_hex_null": "#33222B", "fg_ascii": "#6EE7B7", "fg_muted": "#9E7E8F", "border": "#2E2028", "accent": "#E11D48", "accent_fg": "#FFFFFF", "syn_keyword": "#FB7185", "syn_function": "#F472B6", "syn_builtin": "#38BDF8", "syn_string": "#FDE047", "syn_comment": "#7A5C6C", "syn_number": "#A78BFA"}, "_file": "crimson_eclipse.json"}, {"id": "dracula_pro", "name": "Dracula Pro", "description": "Tema oscuro de alto contraste con acentos violeta y cian.", "colors": {"bg_window": "#1E1F29", "bg_toolbar": "#282A36", "bg_editor": "#191A21", "bg_gutter": "#21222C", "bg_statusbar": "#282A36", "bg_tab_active": "#BD93F9", "bg_tab_inactive": "#343746", "bg_hover": "#44475A", "bg_current_line": "#262835", "fg_text": "#F8F8F2", "fg_gutter": "#6272A4", "fg_hex": "#8BE9FD", "fg_hex_null": "#44475A", "fg_ascii": "#50FA7B", "fg_muted": "#A6ACCD", "border": "#44475A", "accent": "#BD93F9", "accent_fg": "#191A21", "syn_keyword": "#FF79C6", "syn_function": "#50FA7B", "syn_builtin": "#8BE9FD", "syn_string": "#F1FA8C", "syn_comment": "#6272A4", "syn_number": "#FFB86C"}, "_file": "dracula_pro.json"}, {"id": "gruvbox_warm", "name": "Gruvbox Warm", "description": "Tonos tierra y ámbar cálidos de alto contraste.", "colors": {"bg_window": "#1D2021", "bg_toolbar": "#282828", "bg_editor": "#1B1B1B", "bg_gutter": "#242424", "bg_statusbar": "#282828", "bg_tab_active": "#FABD2F", "bg_tab_inactive": "#3C3836", "bg_hover": "#504945", "bg_current_line": "#282624", "fg_text": "#EBDBB2", "fg_gutter": "#7C6F64", "fg_hex": "#83A598", "fg_hex_null": "#3C3836", "fg_ascii": "#B8BB26", "fg_muted": "#A89984", "border": "#3C3836", "accent": "#FABD2F", "accent_fg": "#1D2021", "syn_keyword": "#FB4934", "syn_function": "#B8BB26", "syn_builtin": "#8EC07C", "syn_string": "#FABD2F", "syn_comment": "#928374", "syn_number": "#D3869B"}, "_file": "gruvbox_warm.json"}, {"id": "monokai_vivid", "name": "Monokai Vivid", "description": "Clásico Monokai cálido con tonos magenta, verde lima y amarillo.", "colors": {"bg_window": "#1E1F1C", "bg_toolbar": "#272822", "bg_editor": "#171814", "bg_gutter": "#22231E", "bg_statusbar": "#272822", "bg_tab_active": "#A6E22E", "bg_tab_inactive": "#33342D", "bg_hover": "#3E3D32", "bg_current_line": "#252620", "fg_text": "#F8F8F2", "fg_gutter": "#75715E", "fg_hex": "#66D9EF", "fg_hex_null": "#3E3D32", "fg_ascii": "#A6E22E", "fg_muted": "#9E9A84", "border": "#3E3D32", "accent": "#A6E22E", "accent_fg": "#171814", "syn_keyword": "#F92672", "syn_function": "#A6E22E", "syn_builtin": "#66D9EF", "syn_string": "#E6DB74", "syn_comment": "#75715E", "syn_number": "#AE81FF"}, "_file": "monokai_vivid.json"}, {"id": "nord_arctic", "name": "Nord Arctic", "description": "Paleta ártica suave azul-grisácea descansada para sesiones largas.", "colors": {"bg_window": "#242933", "bg_toolbar": "#2E3440", "bg_editor": "#1F242D", "bg_gutter": "#292E39", "bg_statusbar": "#2E3440", "bg_tab_active": "#88C0D0", "bg_tab_inactive": "#3B4252", "bg_hover": "#434C5E", "bg_current_line": "#2A303C", "fg_text": "#ECEFF4", "fg_gutter": "#616E88", "fg_hex": "#81A1C1", "fg_hex_null": "#3B4252", "fg_ascii": "#A3BE8C", "fg_muted": "#9AA5B8", "border": "#3B4252", "accent": "#88C0D0", "accent_fg": "#1F242D", "syn_keyword": "#81A1C1", "syn_function": "#88C0D0", "syn_builtin": "#5E81AC", "syn_string": "#A3BE8C", "syn_comment": "#616E88", "syn_number": "#B48EAD"}, "_file": "nord_arctic.json"}, {"id": "solarized_dark", "name": "Solarized Dark", "description": "Esquema azul petróleo equilibrado con acentos cálidos.", "colors": {"bg_window": "#00212B", "bg_toolbar": "#073642", "bg_editor": "#001E26", "bg_gutter": "#042B35", "bg_statusbar": "#073642", "bg_tab_active": "#268BD2", "bg_tab_inactive": "#0B4352", "bg_hover": "#115162", "bg_current_line": "#062D37", "fg_text": "#93A1A1", "fg_gutter": "#586E75", "fg_hex": "#2AA198", "fg_hex_null": "#164450", "fg_ascii": "#859900", "fg_muted": "#657B83", "border": "#124957", "accent": "#268BD2", "accent_fg": "#FDF6E3", "syn_keyword": "#859900", "syn_function": "#268BD2", "syn_builtin": "#2AA198", "syn_string": "#2AA198", "syn_comment": "#586E75", "syn_number": "#D33682"}, "_file": "solarized_dark.json"}, {"id": "solarized_light", "name": "Solarized Light", "description": "Tema claro crema suave sin deslumbramiento diurno.", "colors": {"bg_window": "#EEE8D5", "bg_toolbar": "#F5EFDC", "bg_editor": "#FDF6E3", "bg_gutter": "#F3ECD8", "bg_statusbar": "#E6DFCB", "bg_tab_active": "#268BD2", "bg_tab_inactive": "#E2DAC4", "bg_hover": "#D5CCB4", "bg_current_line": "#F5EEDB", "fg_text": "#586E75", "fg_gutter": "#93A1A1", "fg_hex": "#268BD2", "fg_hex_null": "#D3CCB8", "fg_ascii": "#859900", "fg_muted": "#657B83", "border": "#D3CCB8", "accent": "#268BD2", "accent_fg": "#FDF6E3", "syn_keyword": "#859900", "syn_function": "#268BD2", "syn_builtin": "#CB4B16", "syn_string": "#2AA198", "syn_comment": "#93A1A1", "syn_number": "#D33682"}, "_file": "solarized_light.json"}, {"id": "tokyo_night", "name": "Tokyo Night", "description": "Neón nocturno azul profundo inspirado en Tokio de noche.", "colors": {"bg_window": "#16161E", "bg_toolbar": "#1F2335", "bg_editor": "#1A1B26", "bg_gutter": "#181924", "bg_statusbar": "#1F2335", "bg_tab_active": "#7AA2F7", "bg_tab_inactive": "#292E42", "bg_hover": "#333952", "bg_current_line": "#222433", "fg_text": "#C0CAF5", "fg_gutter": "#565F89", "fg_hex": "#7DCFFF", "fg_hex_null": "#2F354D", "fg_ascii": "#9ECE6A", "fg_muted": "#7982A9", "border": "#292E42", "accent": "#7AA2F7", "accent_fg": "#16161E", "syn_keyword": "#BB9AF7", "syn_function": "#7AA2F7", "syn_builtin": "#2AC3DE", "syn_string": "#9ECE6A", "syn_comment": "#565F89", "syn_number": "#FF9E64"}, "_file": "tokyo_night.json"}];
+const FALLBACK_PLUGINS = [{"id": "contador_palabras", "name": "Contador de palabras", "version": "1.0", "description": "Cuenta las palabras del documento actual.", "author": "eze-as", "requirements": [], "justificaciones": {}, "status": "aprobado"}];
+// =========================================================================
+
+let session = localStorage.getItem("nh_session") || "";
+let themes = FALLBACK_THEMES, plugins = FALLBACK_PLUGINS, tab = "temas", filter = "todos", query = "";
+let turnstileToken = "";
+const grid = document.getElementById("grid");
+const $ = id => document.getElementById(id);
+
+// ---------- sesión ----------
+if (location.hash.startsWith("#session=")) {
+  session = location.hash.slice(9);
+  localStorage.setItem("nh_session", session);
+  history.replaceState(null, "", location.pathname);
+}
+async function refreshUser() {
+  if (!session) return;
+  try {
+    const r = await fetch(CONFIG.API_URL + "/api/me", { headers: { Authorization: "Bearer " + session } });
+    if (!r.ok) throw new Error();
+    const me = await r.json();
+    $("who").textContent = "@" + me.login;
+    $("btn-login").textContent = "Cerrar sesión";
+    $("btn-upload").disabled = false;
+  } catch { session = ""; localStorage.removeItem("nh_session"); }
+}
+$("btn-login").addEventListener("click", () => {
+  if (session) { session = ""; localStorage.removeItem("nh_session"); location.reload(); }
+  else location.href = CONFIG.API_URL + "/auth/github";
+});
+
+// ---------- galería ----------
+const esc = s => String(s ?? "").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+function lum(hex) { const h = (hex||"#000000").replace("#",""); const [r,g,b] = [0,2,4].map(i => parseInt(h.substr(i,2),16)/255); return .2126*r+.7152*g+.0722*b; }
+const isDark = t => lum(t.colors.bg_editor) < .5;
+
+function themeCard(t, i) {
+  const c = t.colors;
+  const style = [`--w:${c.bg_window}`,`--tb:${c.bg_toolbar}`,`--ed:${c.bg_editor}`,`--gu:${c.bg_gutter||c.bg_editor}`,
+    `--tx:${c.fg_text}`,`--muted2:${c.fg_muted}`,`--ac:${c.accent}`,`--kw:${c.syn_keyword}`,`--st:${c.syn_string}`,
+    `--cm:${c.syn_comment}`,`--fn:${c.syn_function}`,`--nm:${c.syn_number}`].join(";");
+  const sw = ["bg_window","accent","syn_keyword","syn_string","syn_function"].map(k => `<b style="background:${c[k]}"></b>`).join("");
+  const el = document.createElement("article");
+  el.className = "card"; el.style.animationDelay = (i*60)+"ms";
+  el.innerHTML = `
+    <div class="preview" style="${style}">
+      <div class="tb"><i></i><i></i><i></i></div>
+      <div class="ed"><div class="gu">1<br>2<br>3<br>4</div>
+        <div class="tx"><span class="c">// Hola, NoteHex++</span>
+<span class="k">def</span> <span class="f">saludo</span>(<span class="n">n</span>):
+    <span class="k">return</span> <span class="s">"Hola"</span>
+<span class="k">print</span>(saludo(<span class="n">42</span>))</div></div>
+    </div>
+    <div class="info">
+      <h3>${esc(t.name)} <span class="tag">${isDark(t)?"oscuro":"claro"}</span></h3>
+      <p>${esc(t.description||"")}</p>
+      <div class="sw">${sw}</div>
+      <div class="actions">
+        <button class="btn primary" data-dl="${esc(t._file)}">Descargar</button>
+        <a class="btn" href="${CONFIG.repoRaw}${esc(t._file)}" target="_blank" rel="noopener">Ver JSON</a>
+      </div>
+    </div>`;
+  return el;
+}
+function pluginCard(p, i) {
+  const el = document.createElement("article");
+  el.className = "card"; el.style.animationDelay = (i*60)+"ms";
+  const reqs = (p.requirements||[]).length ? (p.requirements.length + " dependencia(s)") : "Sin dependencias";
+  el.innerHTML = `
+    <div class="pl-preview">🧩</div>
+    <div class="info">
+      <h3>${esc(p.name)} <span class="tag ok">${esc(p.status||"aprobado")}</span></h3>
+      <p>${esc(p.description||"")}</p>
+      <div class="sw"><span class="tag">v${esc(p.version)}</span> <span class="tag">${reqs}</span> <span class="tag">por @${esc(p.author||"anónimo")}</span></div>
+      <div class="actions">
+        <a class="btn primary" href="${CONFIG.repoRaw}plugins/${esc(p.id)}/plugin.zip" target="_blank" rel="noopener">Descargar</a>
+      </div>
+    </div>`;
+  return el;
+}
+function render() {
+  const q = query.toLowerCase();
+  const list = tab === "temas"
+    ? themes.filter(t => (filter==="todos" || (filter==="oscuro")===isDark(t)) && (!q || (t.name+" "+(t.description||"")).toLowerCase().includes(q)))
+    : plugins.filter(p => !q || (p.name+" "+(p.description||"")).toLowerCase().includes(q));
+  grid.innerHTML = "";
+  if (!list.length) { grid.innerHTML = '<p class="empty">No hay resultados.</p>'; return; }
+  list.forEach((x, i) => grid.appendChild(tab === "temas" ? themeCard(x, i) : pluginCard(x, i)));
+}
+grid.addEventListener("click", e => {
+  const b = e.target.closest("[data-dl]"); if (!b) return;
+  const t = themes.find(x => x._file === b.dataset.dl); const { _file, ...clean } = t;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(clean, null, 2)], { type: "application/json" }));
+  a.download = _file; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+$("q").addEventListener("input", e => { query = e.target.value; render(); });
+document.querySelectorAll(".chip").forEach(ch => ch.addEventListener("click", () => {
+  document.querySelectorAll(".chip").forEach(x => x.classList.remove("on")); ch.classList.add("on"); filter = ch.dataset.f; render();
+}));
+document.querySelectorAll(".tab").forEach(tb => tb.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach(x => x.classList.remove("on")); tb.classList.add("on");
+  tab = tb.dataset.tab; document.querySelector(".bar").style.visibility = tab === "temas" ? "visible" : "visible";
+  render();
+}));
+
+async function loadRemote() {
+  $("src").textContent = "datos de respaldo";
+  try {
+    const txt = await (await fetch(CONFIG.dataJson, { cache: "no-store" })).text();
+    const links = txt.split("\n").map(s => s.trim()).filter(s => s.startsWith("http") && s.endsWith(".json"));
+    const loaded = await Promise.all(links.map(async u => { const d = await (await fetch(u,{cache:"no-store"})).json(); d._file = u.split("/").pop(); return d; }));
+    if (loaded.length) { themes = loaded; $("src").textContent = "GitHub · eze-as/notehex-db"; }
+  } catch { $("status").textContent = "No se pudo leer GitHub; mostrando datos de respaldo."; }
+  try {
+    const p = await (await fetch(CONFIG.pluginsIndex, { cache: "no-store" })).json();
+    if (Array.isArray(p) && p.length) plugins = p;
+  } catch { /* se queda el respaldo */ }
+  render();
+}
+
+// ---------- subida ----------
+let pendingFile = null;
+const modal = $("modal-bg");
+function openModal() {
+  pendingFile = null; turnstileToken = "";
+  $("m-file").value = ""; $("m-send").disabled = true;
+  $("m-checks").innerHTML = "Elige un archivo para comprobarlo antes de enviarlo.";
+  $("m-kind").value = tab === "plugins" ? "plugin" : "theme";
+  applyKindAccept();
+  if (CONFIG.TURNSTILE_SITE_KEY && window.turnstile) {
+    $("ts-box").innerHTML = ""; turnstile.render("#ts-box", { sitekey: CONFIG.TURNSTILE_SITE_KEY,
+      callback: t => { turnstileToken = t; updateSend(); } });
+  } else {
+    $("ts-box").innerHTML = '<p class="notice">Verificación anti-bots pendiente de configurar.</p>';
+    turnstileToken = "dev";
+  }
+  modal.classList.add("open");
+}
+function applyKindAccept() { $("m-file").accept = $("m-kind").value === "theme" ? ".json" : ".zip"; }
+function closeModal() { modal.classList.remove("open"); }
+function updateSend() { $("m-send").disabled = !(pendingFile && turnstileToken); }
+$("btn-upload").addEventListener("click", openModal);
+$("m-cancel").addEventListener("click", closeModal);
+modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
+$("m-kind").addEventListener("change", () => { applyKindAccept(); pendingFile = null; updateSend(); });
+
+const line = (cls, msg) => `<div class="${cls}">${esc(msg)}</div>`;
+async function precheck(file) {
+  const kind = $("m-kind").value;
+  const out = [];
+  if (file.size > 200 * 1024) out.push(line("bad", "Archivo demasiado grande (máx. 200 KB)."));
+  if (kind === "theme") {
+    try {
+      const d = JSON.parse(await file.text());
+      const okId = /^[a-z0-9_]{3,40}$/.test(d.id || "");
+      out.push(okId ? line("ok", "id válido: " + d.id) : line("bad", "id no válido (minúsculas, dígitos o _)."));
+      const colors = d.colors || {};
+      const bad = Object.entries(colors).filter(([, v]) => !/^#[0-9A-Fa-f]{6}$/.test(v));
+      out.push(bad.length ? line("bad", `Colores no hexadecimales: ${bad.map(x => x[0]).join(", ")}`) : line("ok", "Colores hexadecimales válidos."));
+      const extra = Object.keys(d).filter(k => !["id","name","description","colors"].includes(k));
+      if (extra.length) out.push(line("bad", "Campos no permitidos: " + extra.join(", ")));
+    } catch { out.push(line("bad", "No es un JSON válido.")); }
+  } else {
+    try {
+      const zip = await JSZip.loadAsync(file);
+      const mf = zip.file(/plugin\.json$/i)[0];
+      if (!mf) out.push(line("bad", "Falta plugin.json en el zip."));
+      else {
+        const m = JSON.parse(await mf.async("string"));
+        out.push(line("ok", "plugin.json encontrado: " + (m.name || "sin nombre")));
+        for (const req of m.requirements || []) {
+          const pkg = String(req).split(/[<>=!~\[; ]/)[0].toLowerCase();
+          if (BLACK.includes(pkg)) out.push(line("bad", `Dependencia prohibida: ${pkg}`));
+          else if (GRAY.includes(pkg)) out.push(((m.justificaciones||{})[pkg]||"").length >= 40
+            ? line("warn", `Dependencia gris '${pkg}' justificada (revisión manual).`)
+            : line("bad", `'${pkg}' necesita justificación de 40+ caracteres en justificaciones.`));
+        }
+      }
+      for (const f of Object.values(zip.files)) {
+        if (!f.name.endsWith(".py")) continue;
+        const src = await f.async("string");
+        const hits = [...new Set([...src.matchAll(/^\s*(?:import|from)\s+([\w.]+)/gm)].map(x => x[1].split(".")[0]))]
+          .filter(m => BLACK_MODULES.includes(m));
+        if (hits.length) out.push(line("bad", `${f.name}: módulos prohibidos: ${hits.join(", ")}`));
+        if (/\b(__import__|exec|eval|importlib)\b/.test(src)) out.push(line("bad", `${f.name}: uso de exec/eval/importlib no permitido.`));
+      }
+    } catch (e) { out.push(line("bad", "No se pudo leer el zip del plugin.")); }
+  }
+  return out;
+}
+const BLACK = ["scapy","impacket","pwntools","pynput","keyboard","mouse","pyautogui","paramiko","python-nmap","mitmproxy","frida","unicorn","keystone-engine","pyshark","shodan","censys"];
+const GRAY = ["requests","cryptography","pycryptodome","ctypes","sqlalchemy","beautifulsoup4","selenium","playwright","opencv-python","pywin32","mss","pefile","capstone","dnspython"];
+const BLACK_MODULES = ["scapy","impacket","pwn","pynput","keyboard","mouse","pyautogui","paramiko","nmap","mitmproxy","frida","unicorn","keystone","pyshark","shodan","censys"];
+
+async function handleFile(file) {
+  pendingFile = file;
+  $("m-checks").innerHTML = "Comprobando…";
+  $("m-checks").innerHTML = (await precheck(file)).join("") || line("ok", "Sin problemas aparentes.");
+  updateSend();
+}
+$("m-file").addEventListener("change", e => e.target.files[0] && handleFile(e.target.files[0]));
+const drop = $("drop");
+["dragenter","dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => e.dataTransfer.files[0] && handleFile(e.dataTransfer.files[0]));
+
+$("m-send").addEventListener("click", async () => {
+  $("m-send").disabled = true; $("m-send").textContent = "Enviando…";
+  const fd = new FormData();
+  fd.append("file", pendingFile); fd.append("kind", $("m-kind").value); fd.append("turnstile", turnstileToken);
+  try {
+    const r = await fetch(CONFIG.API_URL + "/api/submit", { method: "POST", body: fd, headers: { Authorization: "Bearer " + session } });
+    const data = await r.json();
+    if (r.ok) { $("m-checks").innerHTML = line("ok", "Enviado. Revisión: " + data.pr); }
+    else { $("m-checks").innerHTML = line("bad", data.error || "Error al enviar.") + (data.report ? `<pre style="white-space:pre-wrap">${esc(data.report)}</pre>` : ""); }
+  } catch { $("m-checks").innerHTML = line("bad", "No se pudo conectar con el servidor."); }
+  $("m-send").textContent = "Enviar para revisión"; $("m-send").disabled = false;
+});
+
+render();
+refreshUser();
+loadRemote();
+</script>
+</body>
+</html>
